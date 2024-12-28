@@ -1,26 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useDesigners } from '../hooks/useDesigners';
 import { DesignerCard } from '../components/DesignerCard';
 import { DesignerFiltersPanel } from '../components/DesignerFilters';
 import { Designer } from '../types';
 import { DesignerFilters } from '../types/filters';
 import { Search, Loader2 } from 'lucide-react';
-import { getDesigners } from '../lib/designers';
-import { ImageCarousel } from '../components/ImageCarousel';
 
 export const BrowseDesigners: React.FC = () => {
-  const [filters, setFilters] = useState<DesignerFilters>({
-    price_range: { min: 0, max: 500 },
-    experience_level: { min: 0, max: 20 },
-    rating: { min: 0, max: 5 },
-    completed_projects: { min: 0, max: 100 }
-  });
+  const [filters, setFilters] = useState<DesignerFilters>({});
   const [selectedDesigner, setSelectedDesigner] = useState<Designer | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [designers, setDesigners] = useState<Designer[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  
+  const { data: designers, isLoading, error } = useDesigners();
+
+  console.log('BrowseDesigners render:', { designers, isLoading, error });
 
   const filteredDesigners = React.useMemo(() => {
+    if (!designers) return [];
+    
     return designers.filter(designer => {
       // Search query
       if (searchQuery) {
@@ -86,26 +83,12 @@ export const BrowseDesigners: React.FC = () => {
     });
   }, [designers, filters, searchQuery]);
 
-  useEffect(() => {
-    const loadDesigners = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await getDesigners();
-        setDesigners(data);
-      } catch (err) {
-        setError('Failed to load designers. Please try again later.');
-        console.error('Error loading designers:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadDesigners();
-  }, []);
+  if (error) {
+    console.error('Error loading designers:', error);
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-24">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse Designers</h1>
       
       <div className="flex gap-8">
@@ -138,16 +121,20 @@ export const BrowseDesigners: React.FC = () => {
             </div>
           ) : error ? (
             <div className="text-center text-red-600 min-h-[400px] flex items-center justify-center">
-              <p>{error}</p>
+              <p>Error loading designers: {error.message}</p>
+            </div>
+          ) : filteredDesigners.length === 0 ? (
+            <div className="text-center text-gray-500 min-h-[400px] flex items-center justify-center">
+              <p>No designers found</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredDesigners.map((designer) => (
-              <DesignerCard
-                key={designer.id}
-                designer={designer}
-                onClick={setSelectedDesigner}
-              />
+                <DesignerCard
+                  key={designer.id}
+                  designer={designer}
+                  onClick={setSelectedDesigner}
+                />
               ))}
             </div>
           )}
@@ -168,10 +155,13 @@ export const BrowseDesigners: React.FC = () => {
               </button>
             </div>
             <div className="h-80">
-              <ImageCarousel 
-                images={selectedDesigner.images} 
-                alt={selectedDesigner.name}
-              />
+              {selectedDesigner.images?.length > 0 && (
+                <img
+                  src={selectedDesigner.images[0]}
+                  alt={selectedDesigner.name}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              )}
             </div>
             <p className="text-gray-600 my-4">{selectedDesigner.bio}</p>
             <button className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors">

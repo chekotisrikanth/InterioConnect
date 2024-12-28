@@ -10,21 +10,21 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
-    children: routes[0].children, // Get children from our routes configuration
+    children: routes[0].children,
   },
 ]);
 
-function App() {
+export function App() {
   // Initialize auth on mount
   React.useEffect(() => {
     useAuthStore.getState().initialize();
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
       <Toaster position="top-right" />
       <RouterProvider router={router} />
-    </div>
+    </>
   );
 }
 

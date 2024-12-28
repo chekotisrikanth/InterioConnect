@@ -16,15 +16,6 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
 
     if (authError) {
       console.error('Auth error:', authError);
-      
-      // Handle specific error cases
-      if (authError.status === 400) {
-        throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS);
-      }
-      if (authError.status === 500) {
-        throw new Error(AUTH_ERRORS.SERVER_ERROR);
-      }
-      
       throw authError;
     }
 

@@ -4,6 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 import { AUTH_CONFIG } from '../../lib/auth/constants';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -12,6 +13,7 @@ interface LoginFormProps {
 export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const setUser = useAuthStore((state) => state.setUser);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -30,28 +32,29 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
       setUser(user);
       toast.success('Welcome back!');
-
-      if (user.role === 'admin') {
-        window.location.href = '/admin';
-      } else if (user.role === 'client') {
-        window.location.href = '/client/dashboard';
-      }
       onSuccess();
+
+      // Redirect based on user role
+      switch (user.role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'client':
+        case 'user':
+          navigate('/client/dashboard');
+          break;
+        case 'designer':
+          navigate('/designer/dashboard');
+          break;
+        default:
+          navigate('/');
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error(error.message || 'Failed to sign in');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // For development/testing - prefill admin credentials
-  const fillAdminCredentials = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setFormData({
-      email: AUTH_CONFIG.DEFAULT_ADMIN_EMAIL,
-      password: AUTH_CONFIG.DEFAULT_ADMIN_PASSWORD
-    });
   };
 
   return (
@@ -104,7 +107,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
       {process.env.NODE_ENV === 'development' && (
         <button
-          onClick={fillAdminCredentials}
+          type="button"
+          onClick={() => setFormData({
+            email: AUTH_CONFIG.DEFAULT_ADMIN_EMAIL,
+            password: AUTH_CONFIG.DEFAULT_ADMIN_PASSWORD
+          })}
           className="w-full mt-2 text-sm text-gray-500 hover:text-gray-700"
         >
           Fill Admin Credentials (Dev Only)
