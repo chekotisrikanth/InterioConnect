@@ -6,6 +6,9 @@ export interface Designer {
   id: string;
   name: string;
   bio: string;
+  specialty?: string[];
+  styles: DesignerStyle[];
+  room_types: RoomType[];
   services: {
     fullRoomDesign: boolean;
     consultation: boolean;
@@ -19,12 +22,12 @@ export interface Designer {
   };
   images: string[];
   is_approved: boolean;
-  styles: DesignerStyle[];
-  room_types: RoomType[];
+  experience?: number;
   experience_level: number;
   rating: number;
-  portfolio_types: PortfolioType[];
+  projects?: number;
   completed_projects: number;
+  portfolio_types: PortfolioType[];
 }
 
 export interface Project {

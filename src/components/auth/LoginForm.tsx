@@ -33,9 +33,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
       if (user.role === 'admin') {
         window.location.href = '/admin';
-        return;
+      } else if (user.role === 'client') {
+        window.location.href = '/client/dashboard';
       }
-
       onSuccess();
     } catch (error: any) {
       console.error('Login error:', error);

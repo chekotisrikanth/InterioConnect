@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Palette } from 'lucide-react';
 import { AuthModal } from './auth/AuthModal';
+import { useAuthStore } from '../stores/authStore';
+import { Link } from 'react-router-dom';
 
 export const Header: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const user = useAuthStore((state) => state.user);
 
   return (
     <>
@@ -17,12 +20,21 @@ export const Header: React.FC = () => {
             <nav className="flex items-center space-x-6">
               <a href="#" className="text-gray-600 hover:text-gray-900">How it Works</a>
               <a href="#" className="text-gray-600 hover:text-gray-900">Browse Designers</a>
-              <button 
-                onClick={() => setShowAuthModal(true)}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                Login / Register
-              </button>
+              {user ? (
+                <Link 
+                  to={user.role === 'client' ? '/client/dashboard' : '/admin'}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Login / Register
+                </button>
+              )}
             </nav>
           </div>
         </div>
