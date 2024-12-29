@@ -7,32 +7,23 @@ export const useDesigners = (filters: DesignerFilters = {}) => {
   return useQuery<Designer[], Error>({
     queryKey: ['designers', filters],
     queryFn: async () => {
+      console.log('Constructing designers query with filters:', filters);
+      
       let query = supabase
         .from('designer_profiles')
         .select(`
           *,
-          profiles!inner (
+          profiles (
             name,
             email
           ),
           portfolio_images (
             image_url
-          ),
-          location:location_id (
-            id,
-            name,
-            type
-          ),
-          served_locations:designer_served_locations (
-            location:location_id (
-              id,
-              name,
-              type
-            )
           )
         `)
         .eq('is_approved', true);
 
+      // Apply other filters
       // Apply location filter
       if (filters.locationId) {
         query = query.or(
@@ -40,7 +31,6 @@ export const useDesigners = (filters: DesignerFilters = {}) => {
         );
       }
 
-      // Apply other filters
       if (filters.styles?.length) {
         query = query.contains('styles', filters.styles);
       }
@@ -82,15 +72,28 @@ export const useDesigners = (filters: DesignerFilters = {}) => {
 
       const { data, error } = await query;
 
+      console.log('Raw query result:', { 
+        success: !error,
+        error: error?.message,
+        dataCount: data?.length,
+        firstItem: data?.[0]
+      });
+
       if (error) throw error;
 
-      return data.map(designer => ({
-        ...designer,
-        name: designer.profiles.name,
-        images: designer.portfolio_images.map(img => img.image_url),
-        location: designer.location,
-        served_locations: designer.served_locations.map(sl => sl.location)
-      }));
+      const mappedData = data.map(designer => {
+        if (!designer.profiles) {
+          console.log('Designer missing profile:', designer.id);
+        }
+        return {
+          ...designer,
+          name: designer.profiles?.name ?? 'Unknown Designer',
+          images: (designer.portfolio_images ?? []).map((img: { image_url: string }) => img.image_url)
+        };
+      });
+
+      console.log('Mapped designer data:', mappedData);
+      return mappedData;
     }
   });
 };
