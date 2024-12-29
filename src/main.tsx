@@ -6,6 +6,10 @@ import { queryClient } from './lib/queryClient';
 import { App } from './App';
 import './index.css';
 
+// Test locations data access on app start
+import { testLocationsAccess } from './lib/testLocations';
+testLocationsAccess().catch(console.error);
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

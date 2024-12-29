@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocations, useLocationHierarchy } from '../../hooks/useLocations';
 import { LocationType } from '../../types/location';
 import { Loader2 } from 'lucide-react';
+import { LocationErrorBoundary } from './LocationErrorBoundary';
 
 interface LocationSelectorProps {
   value?: string;
@@ -9,7 +10,7 @@ interface LocationSelectorProps {
   className?: string;
 }
 
-export const LocationSelector: React.FC<LocationSelectorProps> = ({
+const LocationSelectorInner: React.FC<LocationSelectorProps> = ({
   value,
   onChange,
   className = ''
@@ -20,19 +21,28 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   const [selectedLocality, setSelectedLocality] = useState<string>('');
 
   // Fetch locations for each level
-  const { data: countries, isLoading: loadingCountries } = useLocations('country');
-  const { data: states, isLoading: loadingStates } = useLocations(
+  const { data: countries, isLoading: loadingCountries, error: countriesError } = useLocations('country');
+  const { data: states, isLoading: loadingStates, error: statesError } = useLocations(
     'state',
     selectedCountry
   );
-  const { data: cities, isLoading: loadingCities } = useLocations(
+  const { data: cities, isLoading: loadingCities, error: citiesError } = useLocations(
     'city',
     selectedState
   );
-  const { data: localities, isLoading: loadingLocalities } = useLocations(
+  const { data: localities, isLoading: loadingLocalities, error: localitiesError } = useLocations(
     'locality',
     selectedCity
   );
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Countries:', { data: countries, loading: loadingCountries, error: countriesError });
+    console.log('States:', { data: states, loading: loadingStates, error: statesError, selectedCountry });
+    console.log('Cities:', { data: cities, loading: loadingCities, error: citiesError, selectedState });
+    console.log('Localities:', { data: localities, loading: loadingLocalities, error: localitiesError, selectedCity });
+  }, [countries, states, cities, localities, loadingCountries, loadingStates, loadingCities, loadingLocalities, 
+      countriesError, statesError, citiesError, localitiesError, selectedCountry, selectedState, selectedCity]);
 
   // Load initial hierarchy if value is provided
   const { data: hierarchy } = useLocationHierarchy(value);
@@ -88,6 +98,13 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
+      {/* Connection status indicator */}
+      {(loadingCountries || loadingStates || loadingCities || loadingLocalities) && (
+        <div className="flex items-center space-x-2 text-sm text-gray-500">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span>Loading locations...</span>
+        </div>
+      )}
       <div>
         <label className="block text-sm font-medium text-gray-700">Country</label>
         <select
@@ -164,14 +181,15 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         </div>
       )}
 
-      {(loadingCountries ||
-        loadingStates ||
-        loadingCities ||
-        loadingLocalities) && (
-        <div className="flex justify-center">
-          <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
-        </div>
-      )}
     </div>
+  );
+};
+
+// Wrap with error boundary
+export const LocationSelector: React.FC<LocationSelectorProps> = (props) => {
+  return (
+    <LocationErrorBoundary>
+      <LocationSelectorInner {...props} />
+    </LocationErrorBoundary>
   );
 };
