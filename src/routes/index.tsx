@@ -1,6 +1,7 @@
 import React from 'react';
 import { RouteObject } from 'react-router-dom';
 import { BrowseDesigners } from '../pages/BrowseDesigners';
+import Home from '../pages/Home';
 import { AdminDashboard } from '../pages/admin/Dashboard';
 import { LocationTest } from '../pages/LocationTest';
 import { clientRoutes } from './clientRoutes';
@@ -23,7 +24,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <BrowseDesigners />,
+        element: <Home />,
       },
       {
         path: 'browse-designers',

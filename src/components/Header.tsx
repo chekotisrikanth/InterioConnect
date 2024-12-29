@@ -18,6 +18,9 @@ export const Header: React.FC = () => {
             <span className="ml-2 text-xl font-semibold text-gray-900">InteriorMatch</span>
           </Link>
           <nav className="flex items-center space-x-6">
+            <Link to="/" className="text-gray-600 hover:text-gray-900">
+              Home
+            </Link>
             <Link to="/browse-designers" className="text-gray-600 hover:text-gray-900">
               Browse Designers
             </Link>
