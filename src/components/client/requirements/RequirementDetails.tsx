@@ -15,6 +15,7 @@ import {
   DesignerResponse,
   RequirementStatus,
 } from '../../../types/client';
+import { parseBudgetRange } from '../../../utils/budgetRange';
 
 interface RequirementDetailsProps {
   requirement: Requirement;
@@ -42,6 +43,7 @@ export const RequirementDetails: React.FC<RequirementDetailsProps> = ({
   onHireDesigner,
 }) => {
   const StatusIcon = statusIcons[requirement.status];
+  const budgetRange = parseBudgetRange(requirement.budget_range);
 
   return (
     <div className="space-y-6">
@@ -218,8 +220,8 @@ export const RequirementDetails: React.FC<RequirementDetailsProps> = ({
                   Budget Range
                 </h3>
                 <p className="mt-1 text-gray-900">
-                  ${requirement.budget_range.lower.toLocaleString()} - $
-                  {requirement.budget_range.upper.toLocaleString()}
+                  ${budgetRange.lower.toLocaleString()} - $
+                  {budgetRange.upper.toLocaleString()}
                 </p>
               </div>
               {requirement.timeline_start && (

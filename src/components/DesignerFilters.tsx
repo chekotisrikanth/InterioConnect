@@ -1,6 +1,7 @@
 import React from 'react';
 import { FilterSection } from './FilterSection';
 import { FilterChip } from './FilterChip';
+import { LocationSelector } from './common/LocationSelector';
 import { DesignerFilters } from '../types/filters';
 import { DesignerStyle, RoomType, PortfolioType } from '../types';
 
@@ -41,10 +42,8 @@ export const DesignerFiltersPanel: React.FC<DesignerFiltersProps> = ({
     onChange({ ...filters, price_unit: unit });
   };
 
-  const removeFilter = (key: keyof DesignerFilters) => {
-    const newFilters = { ...filters };
-    delete newFilters[key];
-    onChange(newFilters);
+  const handleLocationChange = (locationId: string) => {
+    onChange({ ...filters, locationId });
   };
 
   return (
@@ -81,14 +80,13 @@ export const DesignerFiltersPanel: React.FC<DesignerFiltersProps> = ({
               onRemove={() => updateArrayFilter('portfolio_types', type)}
             />
           ))}
-          {filters.price_unit && (
+          {filters.locationId && (
             <FilterChip
-              key="price_unit"
-              label={`Price: Per ${filters.price_unit}`}
+              key="location"
+              label="Location"
               onRemove={() => {
                 const newFilters = { ...filters };
-                delete newFilters.price_unit;
-                delete newFilters.price_range;
+                delete newFilters.locationId;
                 onChange(newFilters);
               }}
             />
@@ -97,6 +95,15 @@ export const DesignerFiltersPanel: React.FC<DesignerFiltersProps> = ({
       </div>
 
       <div className="space-y-6">
+        {/* Location Filter */}
+        <div className="border-b pb-6">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Location</h3>
+          <LocationSelector
+            value={filters.locationId}
+            onChange={handleLocationChange}
+          />
+        </div>
+
         <FilterSection<DesignerStyle>
           title="Styles"
           options={STYLES}

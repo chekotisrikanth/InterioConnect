@@ -21,4 +21,5 @@ export interface DesignerFilters {
     min: number;
     max: number;
   };
+  locationId?: string;
 }

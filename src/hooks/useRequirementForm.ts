@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { RequirementFormData } from '../types/client';
 import { useAuthStore } from '../stores/authStore';
+import { formatBudgetRange } from '../utils/budgetRange';
 import toast from 'react-hot-toast';
 
 const initialFormData: RequirementFormData = {
@@ -48,7 +49,13 @@ export const useRequirementForm = () => {
             .upload(fileName, file);
 
           if (error) throw error;
-          return data.path;
+          
+          // Get public URL for the uploaded image
+          const { data: { publicUrl } } = supabase.storage
+            .from('requirement-images')
+            .getPublicUrl(data.path);
+            
+          return publicUrl;
         })
       );
 
@@ -60,7 +67,7 @@ export const useRequirementForm = () => {
           title: formData.title,
           room_type: formData.room_type,
           preferred_style: formData.preferred_style,
-          budget_range: `[${formData.budget_range.lower},${formData.budget_range.upper}]`,
+          budget_range: formatBudgetRange(formData.budget_range),
           description: formData.description,
           images: imageUrls,
           location: formData.location,
@@ -75,7 +82,7 @@ export const useRequirementForm = () => {
       navigate('/client/requirements');
     } catch (err: any) {
       console.error('Error submitting requirement:', err);
-      setError(err.message);
+      setError(err.message || 'Failed to submit requirement');
       toast.error('Failed to submit requirement');
     } finally {
       setIsSubmitting(false);

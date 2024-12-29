@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, CheckCircle2, Star, Building2, Briefcase } from 'lucide-react';
+import { DollarSign, CheckCircle2, Star, Building2, Briefcase, MapPin } from 'lucide-react';
 import { Designer } from '../types';
 import { ImageCarousel } from './ImageCarousel';
 
@@ -23,6 +23,13 @@ export const DesignerCard: React.FC<DesignerCardProps> = ({ designer, onClick })
             <span className="ml-1 text-sm font-medium">{designer.rating.toFixed(1)}</span>
           </div>
         </div>
+
+        {designer.location && (
+          <div className="mt-2 flex items-center text-sm text-gray-600">
+            <MapPin className="w-4 h-4 mr-1" />
+            <span>{designer.location.name}</span>
+          </div>
+        )}
         
         <div className="mt-2 flex flex-wrap gap-1">
           {designer.styles.map((style, index) => (
@@ -72,21 +79,13 @@ export const DesignerCard: React.FC<DesignerCardProps> = ({ designer, onClick })
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-1">
-          {designer.room_types.map((room, index) => (
-            <span key={index} className="px-2 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs">
-              {room}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-2 flex gap-2">
-          {designer.portfolio_types.map((type, index) => (
-            <span key={index} className="text-xs text-gray-500">
-              {type}
-            </span>
-          ))}
-        </div>
+        {designer.served_locations && designer.served_locations.length > 0 && (
+          <div className="mt-4">
+            <p className="text-xs text-gray-500">
+              Also serves: {designer.served_locations.map(loc => loc.name).join(', ')}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

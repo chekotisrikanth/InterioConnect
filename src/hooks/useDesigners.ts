@@ -1,96 +1,96 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Designer } from '../types';
+import { DesignerFilters } from '../types/filters';
 
-export const useDesigners = () => {
+export const useDesigners = (filters: DesignerFilters = {}) => {
   return useQuery<Designer[], Error>({
-    queryKey: ['designers'],
+    queryKey: ['designers', filters],
     queryFn: async () => {
-      console.log('Fetching designers...');
-      
-      // First get designer profiles with their basic info
-      const { data: designerProfiles, error: profilesError } = await supabase
+      let query = supabase
         .from('designer_profiles')
         .select(`
-          id,
-          bio,
-          services,
-          pricing,
-          styles,
-          room_types,
-          price_per_unit,
-          price_unit,
-          experience_level,
-          rating,
-          portfolio_types,
-          completed_projects,
-          is_approved,
-          profiles (
+          *,
+          profiles!inner (
             name,
             email
+          ),
+          portfolio_images (
+            image_url
+          ),
+          location:location_id (
+            id,
+            name,
+            type
+          ),
+          served_locations:designer_served_locations (
+            location:location_id (
+              id,
+              name,
+              type
+            )
           )
         `)
         .eq('is_approved', true);
 
-      if (profilesError) {
-        console.error('Error fetching designer profiles:', profilesError);
-        throw profilesError;
+      // Apply location filter
+      if (filters.locationId) {
+        query = query.or(
+          `location_id.eq.${filters.locationId},served_locations.location_id.eq.${filters.locationId}`
+        );
       }
 
-      console.log('Designer profiles:', designerProfiles);
-
-      if (!designerProfiles?.length) {
-        console.log('No designer profiles found');
-        return [];
+      // Apply other filters
+      if (filters.styles?.length) {
+        query = query.contains('styles', filters.styles);
       }
 
-      // Get portfolio images for all designers
-      const { data: portfolioImages, error: imagesError } = await supabase
-        .from('portfolio_images')
-        .select('*')
-        .in('designer_id', designerProfiles.map(d => d.id));
-
-      if (imagesError) {
-        console.error('Error fetching portfolio images:', imagesError);
-        throw imagesError;
+      if (filters.room_types?.length) {
+        query = query.contains('room_types', filters.room_types);
       }
 
-      console.log('Portfolio images:', portfolioImages);
+      if (filters.portfolio_types?.length) {
+        query = query.contains('portfolio_types', filters.portfolio_types);
+      }
 
-      // Transform the data
-      const designers: Designer[] = designerProfiles.map(profile => {
-        const designerImages = portfolioImages
-          ?.filter(img => img.designer_id === profile.id)
-          .map(img => img.image_url) || [];
+      if (filters.price_range) {
+        if (filters.price_unit) {
+          query = query
+            .eq('price_unit', filters.price_unit)
+            .gte('price_per_unit', filters.price_range.min)
+            .lte('price_per_unit', filters.price_range.max);
+        }
+      }
 
-        return {
-          id: profile.id,
-          name: profile.profiles?.name || 'Designer',
-          bio: profile.bio || '',
-          services: profile.services || {
-            fullRoomDesign: false,
-            consultation: false,
-            eDesign: false
-          },
-          pricing: {
-            type: profile.pricing?.type || 'hourly',
-            rate: profile.pricing?.rate || 0,
-            price_per_unit: profile.price_per_unit || 0,
-            price_unit: profile.price_unit || 'hour'
-          },
-          images: designerImages,
-          is_approved: profile.is_approved || false,
-          styles: profile.styles || [],
-          room_types: profile.room_types || [],
-          experience_level: profile.experience_level || 0,
-          rating: profile.rating || 0,
-          portfolio_types: profile.portfolio_types || [],
-          completed_projects: profile.completed_projects || 0
-        };
-      });
+      if (filters.experience_level) {
+        query = query
+          .gte('experience_level', filters.experience_level.min)
+          .lte('experience_level', filters.experience_level.max);
+      }
 
-      console.log('Transformed designers:', designers);
-      return designers;
+      if (filters.rating) {
+        query = query
+          .gte('rating', filters.rating.min)
+          .lte('rating', filters.rating.max);
+      }
+
+      if (filters.completed_projects) {
+        query = query
+          .gte('completed_projects', filters.completed_projects.min)
+          .lte('completed_projects', filters.completed_projects.max);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return data.map(designer => ({
+        ...designer,
+        name: designer.profiles.name,
+        images: designer.portfolio_images.map(img => img.image_url),
+        location: designer.location,
+        served_locations: designer.served_locations.map(sl => sl.location)
+      }));
     }
   });
 };

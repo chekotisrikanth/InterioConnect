@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Requirement, RequirementStatus } from '../../../types/client';
+import { parseBudgetRange } from '../../../utils/budgetRange';
 
 interface RequirementsListProps {
   requirements: Requirement[];
@@ -63,6 +64,8 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
       <div className="space-y-4">
         {filteredRequirements.map((requirement) => {
           const StatusIcon = statusIcons[requirement.status];
+          const budgetRange = parseBudgetRange(requirement.budget_range);
+
           return (
             <Link
               key={requirement.id}
@@ -99,8 +102,8 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
                       Budget Range
                     </p>
                     <p className="text-sm text-gray-500">
-                      ${requirement.budget_range.lower.toLocaleString()} - $
-                      {requirement.budget_range.upper.toLocaleString()}
+                      ${budgetRange.lower.toLocaleString()} - $
+                      {budgetRange.upper.toLocaleString()}
                     </p>
                     {requirement.timeline_start && (
                       <p className="mt-2 text-xs text-gray-500">

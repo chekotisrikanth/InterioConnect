@@ -2,6 +2,12 @@ export type DesignerStyle = 'Modern' | 'Rustic' | 'Traditional' | 'Minimalist' |
 export type RoomType = 'Living Room' | 'Bedroom' | 'Kitchen' | 'Office' | 'Outdoor Spaces';
 export type PortfolioType = '2D Layouts' | '3D Renders';
 
+export interface Location {
+  id: string;
+  name: string;
+  type: 'country' | 'state' | 'city' | 'locality';
+}
+
 export interface Designer {
   id: string;
   name: string;
@@ -28,13 +34,6 @@ export interface Designer {
   projects?: number;
   completed_projects: number;
   portfolio_types: PortfolioType[];
-}
-
-export interface Project {
-  id: string;
-  designerId: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  category: string;
+  location?: Location;
+  served_locations?: Location[];
 }
